@@ -6,6 +6,7 @@ variable env_prefix {}
 variable vpc_cidr_block {}
 variable subnet_cidr_block {}
 variable avail_zone {}
+variable my_ip {}
 
 
 
@@ -34,7 +35,7 @@ resource "aws_internet_gateway" "myapp-igw" {
   }
 }
 
-resource "aws_route_table" "example" {
+resource "aws_route_table" "my-rtb" {
   vpc_id = aws_vpc.my-vpc.id
 
   route {
@@ -44,5 +45,42 @@ resource "aws_route_table" "example" {
 
   tags = {
     Name = "${var.env_prefix}-rtb"
+  }
+}
+
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.my-vpc-sunbet-1.id
+  route_table_id = aws_route_table.my-rtb.id
+}
+
+resource "aws_security_group" "my-sg" {
+  name        = "my-sg"
+  description = "created by terraform 22 & 8080"
+  vpc_id      = aws_vpc.my-vpc.id
+
+  ingress {
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = [var.my_ip]
+  }
+
+  ingress {
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "${var.env_prefix}-sg"
   }
 }
