@@ -25,3 +25,24 @@ resource "aws_subnet" "my-vpc-sunbet-1" {
     Name = "${var.env_prefix}-subnet"
   }
 }
+
+resource "aws_internet_gateway" "myapp-igw" {
+  vpc_id = aws_vpc.my-vpc.id
+
+  tags = {
+    Name = "${var.env_prefix}-igw"
+  }
+}
+
+resource "aws_route_table" "example" {
+  vpc_id = aws_vpc.my-vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.myapp-igw.id
+  }
+
+  tags = {
+    Name = "${var.env_prefix}-rtb"
+  }
+}
