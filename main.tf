@@ -6,7 +6,7 @@ variable env_prefix {}
 variable vpc_cidr_block {}
 variable subnet_cidr_block {}
 variable avail_zone {}
-variable my_ip {}
+# variable my_ip {}
 variable instance_type {}
 variable public_key_location {}
 
@@ -63,12 +63,12 @@ resource "aws_security_group" "my-sg" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = [var.my_ip]
+    cidr_blocks      = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port        = 8080
-    to_port          = 8080
+    from_port        = 3000
+    to_port          = 3000
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
