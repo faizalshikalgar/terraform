@@ -8,7 +8,8 @@ variable subnet_cidr_block {}
 variable avail_zone {}
 # variable my_ip {}
 variable instance_type {}
-variable public_key_location {}
+variable public_key {}
+variable private_key {}
 
 
 
@@ -101,9 +102,17 @@ data "aws_ami" "my_ami" {
   }
 }
 
+output "image_id" {
+  value = data.aws_ami.my_ami.id
+}
+
+output "public_ip" {
+  value = aws_instance.myapp-server.public_ip
+}
+
 resource "aws_key_pair" "ssh_key" {
     key_name   = "myvm_ubuntu"
-    public_key = file(var.public_key_location)
+    public_key = file(var.public_key)
 }
 
 resource "aws_instance" "myapp-server" {
@@ -119,12 +128,9 @@ resource "aws_instance" "myapp-server" {
   tags = {
     Name = "${var.env_prefix}-server"
   }
-}
 
-output "image_id" {
-  value = data.aws_ami.my_ami.id
-}
-
-output "public_ip" {
-  value = aws_instance.myapp-server.public_ip
+  provisioner "local-exec" {
+    working_dir = "/home/faizal/ansible"
+    command     = "ansible-playbook --inventory ${self.public_ip}, --private-key ${var.private_key} --user ec2-user deploy-dockerec2.yaml"
+  }
 }
