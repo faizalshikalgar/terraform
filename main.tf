@@ -132,9 +132,9 @@ resource "aws_instance" "myapp-server" {
 }
 
 resource "null_resource" "configure_server" {
-  # triggers = {
-  #   triggers = aws_instance.myapp-server.public_ip
-  # }
+  triggers = {
+    triggers = aws_instance.myapp-server.public_ip
+  }
 
   provisioner "local-exec" {
     working_dir = "/home/faizal/ansible"
