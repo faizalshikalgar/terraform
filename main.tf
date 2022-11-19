@@ -107,7 +107,7 @@ output "image_id" {
 }
 
 output "public_ip" {
-  value = aws_instance.myapp-server.public_ip
+  value = aws_instance.myapp-server-one.public_ip
 }
 
 resource "aws_key_pair" "ssh_key" {
@@ -115,7 +115,7 @@ resource "aws_key_pair" "ssh_key" {
     public_key = file(var.public_key)
 }
 
-resource "aws_instance" "myapp-server" {
+resource "aws_instance" "myapp-server-one" {
   ami           = data.aws_ami.my_ami.id
   instance_type = var.instance_type
   
@@ -129,15 +129,4 @@ resource "aws_instance" "myapp-server" {
     Name = "${var.env_prefix}-server"
   }
 
-}
-
-resource "null_resource" "configure_server" {
-  triggers = {
-    triggers = aws_instance.myapp-server.public_ip
-  }
-
-  provisioner "local-exec" {
-    working_dir = "/home/faizal/ansible"
-    command     = "ansible-playbook --inventory ${aws_instance.myapp-server.public_ip}, --private-key ${var.private_key} --user ec2-user deploy-dockerec2.yaml"
-  }
 }
