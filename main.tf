@@ -2,57 +2,21 @@ provider "aws" {
     region = "ap-south-1"
 }
 
-variable env_prefix {}
-variable vpc_cidr_block {}
-variable subnet_cidr_block {}
-variable avail_zone {}
-# variable my_ip {}
-variable instance_type {}
-variable public_key {}
-variable private_key {}
-
-
-
 resource "aws_vpc" "my-vpc" {
   cidr_block = var.vpc_cidr_block
+  enable_dns_hostnames = true
   tags       = {
     Name = "${var.env_prefix}-vpc"
   }
 }
 
-resource "aws_subnet" "my-vpc-sunbet-1" {
+module "my-subnet" {
+  source = "./modules/subnet"
+
+  subnet_cidr_block = var.subnet_cidr_block
+  avail_zone        = var.avail_zone
+  env_prefix        = var.env_prefix
   vpc_id            = aws_vpc.my-vpc.id
-  cidr_block        = var.subnet_cidr_block
-  availability_zone = var.avail_zone
-  tags              = {
-    Name = "${var.env_prefix}-subnet"
-  }
-}
-
-resource "aws_internet_gateway" "myapp-igw" {
-  vpc_id = aws_vpc.my-vpc.id
-
-  tags   = {
-    Name = "${var.env_prefix}-igw"
-  }
-}
-
-resource "aws_route_table" "my-rtb" {
-  vpc_id = aws_vpc.my-vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.myapp-igw.id
-  }
-
-  tags = {
-    Name = "${var.env_prefix}-rtb"
-  }
-}
-
-resource "aws_route_table_association" "a" {
-  subnet_id      = aws_subnet.my-vpc-sunbet-1.id
-  route_table_id = aws_route_table.my-rtb.id
 }
 
 resource "aws_security_group" "my-sg" {
@@ -102,14 +66,6 @@ data "aws_ami" "my_ami" {
   }
 }
 
-output "image_id" {
-  value = data.aws_ami.my_ami.id
-}
-
-output "public_ip" {
-  value = aws_instance.myapp-server-one.public_ip
-}
-
 resource "aws_key_pair" "ssh_key" {
     key_name   = "myvm_ubuntu"
     public_key = file(var.public_key)
@@ -120,7 +76,7 @@ resource "aws_instance" "myapp-server-one" {
   instance_type = var.instance_type
   
   availability_zone            = var.avail_zone
-  subnet_id                    = aws_subnet.my-vpc-sunbet-1.id
+  subnet_id                    = module.my-subnet.subnet.id
   vpc_security_group_ids       = [aws_security_group.my-sg.id]
   associate_public_ip_address  = true
   key_name                     = aws_key_pair.ssh_key.key_name
