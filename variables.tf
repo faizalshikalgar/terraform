@@ -5,3 +5,4 @@ variable avail_zone {}
 variable instance_type {}
 variable public_key {}
 variable private_key {}
+variable image_name {} 

@@ -11,3 +11,8 @@
 # to change depending on the environment.
 #
 *.tfvars
+
+
+# ingnore crash log
+#
+crash.log
